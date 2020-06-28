@@ -1,0 +1,4 @@
+name = "julia_bot"
+uuid = "6cb7d1e0-d593-4ed1-8e19-9da76fddbbea"
+authors = ["Iaggelis <john_agelis@hotmail.com>"]
+version = "0.1.0"
