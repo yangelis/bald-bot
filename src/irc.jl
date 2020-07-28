@@ -1,6 +1,13 @@
+module irc
 include("tcp.jl")
+using .tcp
 
 using Printf
+
+# exports
+export irc_connect, irc_send, read_oauth_file, irc_auth, irc_join,
+    irc_readlines
+
 
 function irc_connect(tcp_sock, hostname, port)
     tcp_create_sock(tcp_sock)
@@ -32,7 +39,6 @@ function irc_auth(tcp_sock, nick::String, oauth::String)
 
 end
 
-
 function irc_join(tcp_sock, channel::String)
     buffer = ""
     buffer = @sprintf("JOIN #%s\r\n", channel)
@@ -40,8 +46,21 @@ function irc_join(tcp_sock, channel::String)
 
 end
 
-
 function irc_readlines(tcp_sock)
-    buffer = tcp_recv(tcp_sock)
-    return buffer
+    buffer = ""
+    st, msg = tcp_recv(tcp_sock)
+    buffer = msg
+    # a = split(buffer, "\r\n")
+
+    # while msg[1] == Status(8)
+    #     # println(stdout, "aayyyy")
+    #     temp = tcp_recv(tcp_sock)
+    #     # buffer = buffer * temp[2]
+    #     # println(stdout, buffer)
+    #     # println(stdout, temp[1])
+    # end
+    # println(stdout, "Returning...")
+    return st, msg
 end
+
+end # module

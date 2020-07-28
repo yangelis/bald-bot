@@ -2,3 +2,6 @@ name = "julia_bot"
 uuid = "6cb7d1e0-d593-4ed1-8e19-9da76fddbbea"
 authors = ["Iaggelis <john_agelis@hotmail.com>"]
 version = "0.1.0"
+
+[deps]
+Sockets = "6462fe0b-24de-5631-8697-dd941f90decc"
