@@ -4,4 +4,5 @@ authors = ["Iaggelis <john_agelis@hotmail.com>"]
 version = "0.1.0"
 
 [deps]
+Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 Sockets = "6462fe0b-24de-5631-8697-dd941f90decc"

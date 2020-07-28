@@ -31,8 +31,6 @@ function tcp_send(tcp_sock::TCPSocket, buffer::String)
 end
 
 function tcp_recv(tcp_sock::TCPSocket)
-    # msg = Vector{Char}()
-    # foreach(x->push!(msg, Char(x)), num_frames)
     line = ""
     line = seek_sock(tcp_sock)
     if line != ""
