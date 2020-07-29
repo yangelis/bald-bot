@@ -20,18 +20,7 @@ function local_repl(tcp_sock::TCPSocket)
                     write(sock, "#> ")
                     str = readline(sock)
                     try
-                        m = match(r"(.*) (.*)", str)
-                        if m.captures[1] == "join"
-                            chn = m.captures[2]
-                            err = irc_join(tcp_sock, String(chn))
-                            println(stdout, "irc_join: ", err)
-                        elseif m.captures[1] == "part"
-                            chn = m.captures[2]
-                            irc_send(tcp_sock, "PART #$chn")
-                        elseif occursin("say", m.captures[1])
-                            msg = split(str, "say", limit=2)[2]
-                            irc_send(tcp_sock, String(chn), String(msg))
-                        end
+                        chn = repl_commands(tcp_sock, str, chn)
                     catch ex
                         println(sock, "Exception on: ", str)
                     end
@@ -50,5 +39,22 @@ function local_repl(tcp_sock::TCPSocket)
     end
 end
 
+function repl_commands(tcp_sock, str, chn )
+    m = match(r"(.*) (.*)", str)
+    if m.captures[1] == "join"
+        chn = m.captures[2]
+        err = irc_join(tcp_sock, String(chn))
+        println(stdout, "irc_join: ", err)
+    elseif m.captures[1] == "part"
+        chn = m.captures[2]
+        irc_send(tcp_sock, "PART #$chn")
+        chn = ""
+    elseif occursin("say", m.captures[1])
+        msg = split(str, "say", limit=2)[2]
+        irc_send(tcp_sock, String(chn), String(msg))
+    end
+
+    return chn
+end
 
 end # module
