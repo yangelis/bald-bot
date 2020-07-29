@@ -13,10 +13,10 @@ using Sockets, Base.Threads
 
 export bot_run
 
-hostname = "irc.chat.twitch.tv"
-nick = "baldiobot"
-channel = "john_pft"
-port = 6667
+const hostname = "irc.chat.twitch.tv"
+const nick = "baldiobot"
+const channel = "john_pft"
+const port = 6667
 
 function bot_run()
     tcp_sock = TCPSocket(;delay=true)
@@ -25,12 +25,10 @@ function bot_run()
     println(stdout, "irc_connect: ", err)
     err = irc_auth(tcp_sock, nick, oauth)
     println(stdout, "irc_auth: ", err)
-    err = irc_join(tcp_sock, channel)
-    println(stdout, "irc_join: ", err)
-    err, msg = irc_readlines(tcp_sock)
+    Threads.@spawn local_repl(tcp_sock)
     println(stdout, "Initialise:")
-    # Threads.@spawn local_repl(tcp_sock)
-    listening(tcp_sock)
+    err, msg = irc_readlines(tcp_sock)
+    # listening(tcp_sock)
 
 end
 
