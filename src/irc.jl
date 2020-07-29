@@ -1,10 +1,11 @@
-__precompile__(true)
 module irc
 include("tcp.jl")
+# include("repl.jl")
+
+# using .repl
 using .tcp
 
-using Sockets
-using Printf
+using Sockets, Printf
 
 # exports
 export irc_connect, irc_send, read_oauth_file, irc_auth, irc_join,
@@ -19,7 +20,7 @@ end
 
 function irc_send(tcp_sock::TCPSocket, buffer::String)
     buffer = buffer * '\r' * '\n'
-    @printf(stdout, "< %s", buffer)
+    # @printf(stdout, "< %s", buffer)
     tcp_send(tcp_sock, buffer)
 end
 
