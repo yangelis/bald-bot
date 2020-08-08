@@ -81,6 +81,8 @@ function irc_parse_msg(tcp_sock::TCPSocket, line::String)
         sender = String(m.captures[1])
         channel = String(m.captures[2])
         msg = String(m.captures[3])
+
+        log_msg(channel, sender, msg)
         if msg[1] == '!' && channel == "john_pft"
             process_commands(tcp_sock, channel, msg, sender=sender)
         end
@@ -94,8 +96,36 @@ function process_commands(tcp_sock::TCPSocket, chn::String, msg::String;
         irc_send(tcp_sock, "john_pft", "PONG")
     elseif command[1] == "pog"
         irc_send(tcp_sock, chn, "@$sender Pogey")
+    elseif command[1] == "markov"
+        irc_send(tcp_sock, "john_pft", markov())
     end
 
+end
+
+function log_msg(chn::String, sender::String, msg::String)
+    filename = "twitch_log.db"
+    db = SQLite.DB()
+    db = DBInterface.connect(SQLite.DB, filename)
+    execute_string = @sprintf "CREATE TABLE IF NOT EXISTS %s (
+                             sender TEXT,
+                             msg TEXT)" chn
+    DBInterface.execute(db, execute_string)
+    prepare_string = @sprintf "INSERT INTO %s VALUES(?,?)" chn
+    q = DBInterface.prepare(db, prepare_string)
+    SQLite.execute(q, (sender,msg))
+
+    DBInterface.close!(db)
+
+end
+
+function markov()
+    logfile::String = "twitch_log.db"
+    buffer = ""
+    db = SQLite.DB(logfile)
+    cols = DBInterface.execute(db,"SELECT * FROM john_pft") |> columntable
+    foreach(x-> buffer *= x * " " , cols[2])
+    gen_text = mcmc.generate_from_string(buffer)
+    return gen_text
 end
 
 end # module
