@@ -1,9 +1,9 @@
 module irc
 include("tcp.jl")
-# include("repl.jl")
+include("mcmc.jl")
 
-# using .repl
 using .tcp
+using .mcmc
 
 using Sockets, Printf
 
@@ -59,7 +59,6 @@ end
 
 function irc_readlines(tcp_sock::TCPSocket)
     buffer = ""
-    # @async begin
     begin
         while !eof(tcp_sock)
             line = readline(tcp_sock)
