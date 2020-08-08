@@ -1,1 +1,4 @@
 *.oauth
+tags
+Manifest.toml
+*.db
