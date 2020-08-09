@@ -122,7 +122,9 @@ function markov()
     logfile::String = "twitch_log.db"
     buffer = ""
     db = SQLite.DB(logfile)
-    cols = DBInterface.execute(db,"SELECT * FROM john_pft") |> columntable
+    cols = DBInterface.execute(db,"""SELECT * FROM john_pft
+                                    WHERE msg NOT LIKE '!%' """
+                               ) |> columntable
     foreach(x-> buffer *= x * " " , cols[2])
     gen_text = mcmc.generate_from_string(buffer)
     return gen_text

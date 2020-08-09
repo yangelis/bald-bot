@@ -4,12 +4,12 @@ include("irc.jl")
 using .irc
 
 
-cmd = Dict("khello"=> irc_send, "bye"=>irc_send, "test"=> println)
+cmd = Dict("hello"=> irc_send, "bye"=>irc_send, "test"=> println)
 
 function generate()
     for (key, command) in cmd
     eval(quote
-             $(Symbol(key))(sock, chn::String) = $command(sock, chn, "khello")
+             $(Symbol(key))(sock, chn::String) = $command(sock, chn, "hello")
          end)
     end
 end
