@@ -35,7 +35,10 @@ function local_repl(tcp_sock::TCPSocket)
                     end
                     if str == "ls"
                         if chn != ""
-                            println(sock, "Channels: ", chn)
+                            println(sock, "Channels joined:")
+                            for (i, ch) in enumerate(chn)
+                                println(sock, i, ": ", ch)
+                            end
                         else
                             println(sock, "No channel joined")
                         end
@@ -49,7 +52,14 @@ function local_repl(tcp_sock::TCPSocket)
 end
 
 function repl_commands(tcp_sock, str, chn )
-    if  ( m = match(r"(.*) (.*)", str) ) !== nothing
+    if ( m = match(r"(?<cmd>.*) :(?<index>\w+) (?<msg>.*)", str)) !== nothing
+        if occursin("say", m[:cmd])
+            println(str)
+            msg = m[:msg]
+            ch_index = parse(Int32, m[:index])
+            irc_send(tcp_sock, chn[ch_index], String(msg))
+        end
+    elseif  ( m = match(r"(.*) (.*)", str) ) !== nothing
         if m.captures[1] == "join"
             temp_chn = m.captures[2]
             push!(chn, temp_chn)
@@ -62,7 +72,6 @@ function repl_commands(tcp_sock, str, chn )
                 end
                 chn = String[]
             else
-
                 old_chn = m.captures[2]
                 remove!(chn, old_chn)
                 irc_send(tcp_sock, "PART #$old_chn")
