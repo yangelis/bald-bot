@@ -5,7 +5,7 @@ include("mcmc.jl")
 using .tcp
 using .mcmc
 
-using Sockets, Printf
+using Sockets, Printf, SQLite, Tables
 
 # exports
 export irc_connect, irc_send, read_oauth_file, irc_auth, irc_join,
