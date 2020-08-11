@@ -78,15 +78,16 @@ function irc_parse_msg(tcp_sock::TCPSocket, line::String)
     if line == "PING :tmi.twitch.tv"
         irc_send(tcp_sock, "PONG :tmi.twitch.tv")
     end
-    m = match(r":(.*)!.*#(.*) :(.*)", line)
+    m = match(r":(?<sender>.*)!.*#(?<channel>\w+) :(?<msg>.*)", line)
     if m !== nothing
-        sender = String(m.captures[1])
-        channel = String(m.captures[2])
-        msg = String(m.captures[3])
+        sender = String(m[:sender])
+        channel = String(m[:channel])
+        msg = String(m[:msg])
 
-        log_msg(channel, sender, msg)
         if msg[1] == '!' && channel == "john_pft"
             process_commands(tcp_sock, channel, msg, sender=sender)
+        else
+            @async log_msg(channel, sender, msg)
         end
     end
 end
@@ -105,6 +106,7 @@ function process_commands(tcp_sock::TCPSocket, chn::String, msg::String;
 end
 
 function log_msg(chn::String, sender::String, msg::String)
+    msg = replace(msg, "\""=>"")
     filename = "twitch_log.db"
     db = SQLite.DB()
     db = DBInterface.connect(SQLite.DB, filename)
@@ -115,8 +117,8 @@ function log_msg(chn::String, sender::String, msg::String)
     prepare_string = @sprintf "INSERT INTO %s VALUES(?,?)" chn
     q = DBInterface.prepare(db, prepare_string)
     SQLite.execute(q, (sender,msg))
-
     DBInterface.close!(db)
+
 
 end
 
