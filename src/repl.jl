@@ -17,10 +17,10 @@ end
 function local_repl(tcp_sock::TCPSocket)
     commands.generate()
     server = listen(6969)
-    chn = String[]
+    chn = Vector{String}()
     m = ""
     while true
-        sock = accept(server)
+        sock::TCPSocket = accept(server)
         @async begin
             try
                 write(sock,"Connected to bot repl\r\n")
@@ -28,10 +28,11 @@ function local_repl(tcp_sock::TCPSocket)
                     write(sock, "#> ")
                     str = readline(sock)
                     try
-                        chn = repl_commands(tcp_sock, str, chn)
+                        repl_commands(tcp_sock, str, chn)
                     catch ex
                         println(sock, "Exception on: ", str)
                         println(sock, "with $ex")
+                        close(sock)
                     end
                     if str == "ls"
                         if chn != ""
@@ -46,12 +47,13 @@ function local_repl(tcp_sock::TCPSocket)
                 end
             catch y
                 println(stderr, "Caught exception: $y")
+                close(sock)
             end
         end
     end
 end
 
-function repl_commands(tcp_sock, str, chn )
+function repl_commands(tcp_sock::TCPSocket, str::String, chn::Vector{String})
     if ( m = match(r"(?<cmd>.*) :(?<index>\w+) (?<msg>.*)", str)) !== nothing
         if occursin("say", m[:cmd])
             println(str)

@@ -17,7 +17,9 @@ function Table(s::String)
     splits = split(s)
     buffer = Table()
     for i in eachindex(splits[1:end-2])
-        prefixes, suffix = Tuple(splits[i:i+1]), splits[i+2]
+        prefixes::Tuple{String, String} = tuple(String(splits[i]),
+                                                String(splits[i+1]))
+        suffix::String = splits[i+2]
         if !(prefixes in buffer.prefixVec)
             push!(buffer.prefixVec, prefixes)
             push!(buffer.suffixVec, suffix)
@@ -26,8 +28,8 @@ function Table(s::String)
     return buffer
 end
 
-function lookup(prefix, table)
-   index = findfirst(x-> prefix == x, table.prefixVec)
+function lookup(prefix::Tuple{String, String}, table::Table)
+   index::Union{Nothing,Int64} = findfirst(x-> prefix == x, table.prefixVec)
     if index != nothing
         return table.suffixVec[index]
     end

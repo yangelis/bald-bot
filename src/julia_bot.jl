@@ -16,7 +16,7 @@ const port = 6667
 
 function bot_run()
     tcp_sock = TCPSocket(;delay=true)
-    oauth = read_oauth_file("pass.oauth")
+    oauth::String = read_oauth_file("pass.oauth")
     err = irc_connect(tcp_sock, hostname, port)
     println(stdout, "irc_connect: ", err)
     err = irc_auth(tcp_sock, nick, oauth)
