@@ -1,3 +1,5 @@
+# based on the irc part of DonHo's bot
+# https://github.com/DonHonerbrink/bruhbot
 module irc
 include("tcp.jl")
 include("mcmc.jl")

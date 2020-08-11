@@ -1,3 +1,5 @@
+# based on the tcp part of DonHo's bot
+# https://github.com/DonHonerbrink/bruhbot
 module tcp
 
 using Base: StatusUninit, StatusInit, StatusConnecting, StatusOpen,
