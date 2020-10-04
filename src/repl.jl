@@ -80,7 +80,7 @@ function repl_commands(tcp_sock::TCPSocket, str::String, chn::Vector{String})
             end
         elseif occursin("say", m.captures[1])
             msg = split(str, "say", limit=2)[2]
-            irc_send(tcp_sock, String(chn), String(msg))
+            irc_send(tcp_sock, String(chn[1]), String(msg))
         end
     elseif ( m = match(r"(.*)", str) ) !== nothing
         if occursin("khello", m.captures[1])
