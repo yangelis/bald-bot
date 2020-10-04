@@ -8,7 +8,7 @@ channel, read messages and even send some
 
 ```julia
 julia --project
-julia> include("srs/main.jl")
+julia> include("src/main.jl")
 julia> main()
 ```
 

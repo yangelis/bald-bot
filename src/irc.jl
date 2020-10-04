@@ -3,9 +3,11 @@
 module irc
 include("tcp.jl")
 include("mcmc.jl")
+# include("parse_config.jl")
 
 using .tcp
 using .mcmc
+# using .parse_config
 
 using Sockets, Printf, SQLite, Tables
 
@@ -14,9 +16,9 @@ export irc_connect, irc_send, read_oauth_file, irc_auth, irc_join,
     irc_readlines
 
 
-function irc_connect(tcp_sock::TCPSocket, hostname, port)
+function irc_connect(tcp_sock::TCPSocket, config)
     tcp_create_sock(tcp_sock)
-    tcp_connect(tcp_sock, hostname, port)
+    tcp_connect(tcp_sock, config.hostname, config.port)
     return Status(tcp_sock.status)
 end
 
@@ -56,17 +58,16 @@ function irc_join(tcp_sock::TCPSocket, channel::String)
     buffer = ""
     buffer = @sprintf("JOIN #%s\r\n", channel)
     irc_send(tcp_sock, buffer)
-
 end
 
-function irc_readlines(tcp_sock::TCPSocket)
+function irc_readlines(tcp_sock::TCPSocket, config)
     buffer = ""
     begin
         while !eof(tcp_sock)
             line = readline(tcp_sock)
             println(stdout,"> ", line)
             if line != nothing
-                irc_parse_msg(tcp_sock, line)
+                irc_parse_msg(tcp_sock, line, config)
             end
         end
     end
@@ -74,7 +75,7 @@ function irc_readlines(tcp_sock::TCPSocket)
     return Status(tcp_sock.status), buffer
 end
 
-function irc_parse_msg(tcp_sock::TCPSocket, line::String)
+function irc_parse_msg(tcp_sock::TCPSocket, line::String, config)
     if line == "PING :tmi.twitch.tv"
         irc_send(tcp_sock, "PONG :tmi.twitch.tv")
     end
@@ -84,23 +85,24 @@ function irc_parse_msg(tcp_sock::TCPSocket, line::String)
         channel = String(m[:channel])
         msg = String(m[:msg])
 
-        if msg[1] == '!' && channel == "john_pft"
-            process_commands(tcp_sock, channel, msg, sender=sender)
-        else
-            @async log_msg(channel, sender, msg)
-        end
+        process_commands(tcp_sock, channel, msg, sender=sender,
+                         preffix=config.cmd_preffix)
+        @async log_msg(channel, sender, msg)
     end
 end
 
 function process_commands(tcp_sock::TCPSocket, chn::String, msg::String;
-                          sender::String="")
-    command = match(r"!(.*)", msg)
-    if command[1] == "ping"
-        irc_send(tcp_sock, "john_pft", "PONG")
-    elseif command[1] == "pog"
-        irc_send(tcp_sock, chn, "@$sender Pogey")
-    elseif command[1] == "markov"
-        irc_send(tcp_sock, "john_pft", markov())
+                          sender::String="", preffix::String="")
+    cmd_regex = Regex(preffix*"(?<cmd>.*) ?(?<body>.*)")
+    command = match(cmd_regex, msg)
+    if command != nothing
+        if command[:cmd] == "ping"
+            irc_send(tcp_sock, chn, "PONG")
+        elseif command[:cmd] == "pog"
+            irc_send(tcp_sock, chn, "@$sender Pogey")
+        elseif command[:cmd] == "markov"
+            irc_send(tcp_sock, chn, markov())
+        end
     end
 
 end
