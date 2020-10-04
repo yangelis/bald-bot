@@ -1,13 +1,13 @@
 # based on the irc part of DonHo's bot
 # https://github.com/DonHonerbrink/bruhbot
-module irc
+module IRC
+
+module Utils
 include("tcp.jl")
 include("mcmc.jl")
-# include("parse_config.jl")
 
 using .tcp
 using .mcmc
-# using .parse_config
 
 using Sockets, Printf, SQLite, Tables
 
@@ -93,7 +93,7 @@ end
 
 function process_commands(tcp_sock::TCPSocket, chn::String, msg::String;
                           sender::String="", preffix::String="")
-    cmd_regex = Regex(preffix*"(?<cmd>.*) ?(?<body>.*)")
+    cmd_regex = Regex("^" * preffix * "(?<cmd>\\w+) ?(?<body>.*)")
     command = match(cmd_regex, msg)
     if command != nothing
         if command[:cmd] == "ping"
@@ -102,6 +102,11 @@ function process_commands(tcp_sock::TCPSocket, chn::String, msg::String;
             irc_send(tcp_sock, chn, "@$sender Pogey")
         elseif command[:cmd] == "markov"
             irc_send(tcp_sock, chn, markov())
+        elseif command[:cmd] == "addcmd"
+            defineCMD(tcp_sock, chn, String(command[:body]))
+        elseif command[:cmd] in keys(defined_cmds)
+            index = command[:cmd]
+            defined_cmds[index][1](tcp_sock, chn, defined_cmds[index][2])
         end
     end
 
@@ -136,4 +141,31 @@ function markov()
     return gen_text
 end
 
-end # module
+const cmd = Dict("say"=> irc_send, "test"=> println)
+
+const defined_cmds = Dict{String, Tuple{Function, String}}()
+
+#TODO: this would be better alone in a module
+# command functionality
+function defineCMD(tcp_sock, chn, expression::String)
+    m = match(r"%(?<cmd>\w+) (?<body>.*)", expression)
+    if m[:cmd] in keys(cmd)
+        defined_cmds[m[:cmd]] = (cmd[m[:cmd]], String(m[:body]))
+    end
+
+end
+
+function generate()
+    for (key, command) in cmd
+        eval(quote
+             $(Symbol(key))(sock, chn::String) = $command(sock, chn, "hello")
+             end)
+    end
+end
+end # irc_Utils
+
+
+
+# end # Commands
+
+end # IRC
