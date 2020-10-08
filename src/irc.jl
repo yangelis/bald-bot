@@ -27,9 +27,11 @@ function irc_send(tcp_sock::TCPSocket, buffer::String)
     tcp_send(tcp_sock, buffer)
 end
 
-function irc_send(tcp_sock::TCPSocket, channel::String, buffer::String)
+function irc_send(tcp_sock::TCPSocket, channel::String, buffer::Vararg{String})
     start_buffer = @sprintf("PRIVMSG #%s :", channel)
-    buffer = start_buffer * buffer * '\r' * '\n'
+    # buffer = start_buffer * buffer * '\r' * '\n'
+    buffer = start_buffer * foldr(*, buffer)
+    buffer *= '\r' * '\n'
     @printf(stdout, "< %s", buffer)
     tcp_send(tcp_sock, buffer)
 end
@@ -104,6 +106,9 @@ function process_commands(tcp_sock::TCPSocket, chn::String, msg::String;
             irc_send(tcp_sock, chn, markov())
         elseif command[:cmd] == "addcmd"
             defineCMD(tcp_sock, chn, String(command[:body]))
+        elseif command[:cmd] == "commands"
+            irc_send(tcp_sock, chn,
+                     Iterators.flatten(collect(keys(defined_cmds))))
         elseif command[:cmd] in keys(defined_cmds)
             index = command[:cmd]
             defined_cmds[index][1](tcp_sock, chn, defined_cmds[index][2])
@@ -145,20 +150,13 @@ const cmd = Dict("say"=> irc_send, "test"=> println)
 
 const defined_cmds = Dict{String, Tuple{Function, String}}()
 
-function load_cmds()
-    #TODO check if files exists
-    cmds_dump = "commands_test.bin"
-    if isfile(cmds_dump)
-        merge!(defined_cmds, deserialize(cmds_dump))
-    end
-end
 
 #TODO: this would be better alone in a module
 # command functionality
 function defineCMD(tcp_sock, chn, expression::String)
-    m = match(r"%(?<cmd>\w+) (?<body>.*)", expression)
-    if m[:cmd] in keys(cmd)
-        defined_cmds[m[:cmd]] = (cmd[m[:cmd]], String(m[:body]))
+    m = match(r"%(?<cmdName>\w+) %(?<func>\w+)*\((?<body>.*)\)", expression)
+    if m[:cmdName] in keys(cmd)
+        defined_cmds[m[:cmdName]] = (cmd[m[:func]], String(m[:body]))
         open("commands_test.bin", "w") do f
             serialize(f, defined_cmds)
         end
@@ -173,6 +171,15 @@ function generate()
              end)
     end
 end
+
+function load_cmds()
+    #TODO check if files exists
+    cmds_dump = "commands_test.bin"
+    if isfile(cmds_dump)
+        merge!(defined_cmds, deserialize(cmds_dump))
+    end
+end
+
 end # irc_Utils
 
 
