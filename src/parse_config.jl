@@ -1,5 +1,5 @@
 module parse_config
-include("../../julia-json/jjson.jl")
+include("../../jjson/jjson.jl")
 
 export Config, parseconfig
 
