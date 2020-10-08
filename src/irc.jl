@@ -9,12 +9,11 @@ include("mcmc.jl")
 using .tcp
 using .mcmc
 
-using Sockets, Printf, SQLite, Tables
+using Sockets, Printf, SQLite, Tables, Serialization
 
 # exports
 export irc_connect, irc_send, read_oauth_file, irc_auth, irc_join,
     irc_readlines
-
 
 function irc_connect(tcp_sock::TCPSocket, config)
     tcp_create_sock(tcp_sock)
@@ -61,6 +60,7 @@ function irc_join(tcp_sock::TCPSocket, channel::String)
 end
 
 function irc_readlines(tcp_sock::TCPSocket, config)
+    load_cmds()
     buffer = ""
     begin
         while !eof(tcp_sock)
@@ -145,12 +145,23 @@ const cmd = Dict("say"=> irc_send, "test"=> println)
 
 const defined_cmds = Dict{String, Tuple{Function, String}}()
 
+function load_cmds()
+    #TODO check if files exists
+    cmds_dump = "commands_test.bin"
+    if isfile(cmds_dump)
+        merge!(defined_cmds, deserialize(cmds_dump))
+    end
+end
+
 #TODO: this would be better alone in a module
 # command functionality
 function defineCMD(tcp_sock, chn, expression::String)
     m = match(r"%(?<cmd>\w+) (?<body>.*)", expression)
     if m[:cmd] in keys(cmd)
         defined_cmds[m[:cmd]] = (cmd[m[:cmd]], String(m[:body]))
+        open("commands_test.bin", "w") do f
+            serialize(f, defined_cmds)
+        end
     end
 
 end

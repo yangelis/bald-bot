@@ -1,7 +1,7 @@
 module repl
 include("irc.jl")
 
-using .IRC
+using .IRC.Utils
 using Sockets
 
 export local_repl
