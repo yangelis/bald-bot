@@ -1,10 +1,7 @@
-module mcmc
-
 # stolen from python implementation
 # https://technicallyagarwal.wordpress.com/2018/02/06/markov-chain-algorithm/
 
-using Printf
-using Random
+using Printf, Random
 
 
 mutable struct Table
@@ -64,4 +61,3 @@ function generate_from_string(s::String)
     return gen_text
 end
 
-end # module

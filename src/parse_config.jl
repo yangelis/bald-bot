@@ -1,20 +1,6 @@
-module parse_config
 include("../../jjson/jjson.jl")
 
-export Config, parseconfig
-
-mutable struct Config
-    cmd_preffix::String
-    owner::String
-    channel::String
-    nickname::String
-    token_file::String
-    hostname::String
-    port::Int64
-    Config() = new()
-end
-
-function parseconfig(configfile::String)
+function parseconfig!(configfile::String, bot::Bot)
     parsed_config = jjson.parsejson(configfile)
 
     config = Config()
@@ -26,9 +12,8 @@ function parseconfig(configfile::String)
     config.nickname = parsed_config["twitch"]["nickname"]
     config.token_file = parsed_config["twitch"]["token"]
 
+    bot.config = config
+
     return config
 end
 
-
-
-end # module

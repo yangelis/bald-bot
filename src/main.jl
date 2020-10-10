@@ -1,7 +1,5 @@
 using julia_bot
 
-function main(config_file::String)
-
-    bot_run(config_file)
-
-end # main
+function main(config::String)
+    run_bot(config)
+end
