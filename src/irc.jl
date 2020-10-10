@@ -33,9 +33,7 @@ end
 
 function irc_send(tcp_sock::TCPSocket, channel::String, buffer::String)
     start_buffer = @sprintf("PRIVMSG #%s :", channel)
-    # buffer = start_buffer * buffer * '\r' * '\n'
-    buffer = start_buffer * foldr(*, buffer)
-    buffer *= '\r' * '\n'
+    buffer = start_buffer * buffer * '\r' * '\n'
     @printf(stdout, "< %s", buffer)
     tcp_send(tcp_sock, buffer)
 end
