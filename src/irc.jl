@@ -27,7 +27,11 @@ function irc_send(tcp_sock::TCPSocket, buffer::String)
     tcp_send(tcp_sock, buffer)
 end
 
-function irc_send(tcp_sock::TCPSocket, channel::String, buffer::Vararg{String})
+function irc_send(tcp_sock::TCPSocket, channel::String, buffer::Vector{String})
+    irc_send(tcp_sock, channel, mapreduce(x -> x * ',', *, buffer)[1:end-1])
+end
+
+function irc_send(tcp_sock::TCPSocket, channel::String, buffer::String)
     start_buffer = @sprintf("PRIVMSG #%s :", channel)
     # buffer = start_buffer * buffer * '\r' * '\n'
     buffer = start_buffer * foldr(*, buffer)
@@ -108,7 +112,7 @@ function process_commands(tcp_sock::TCPSocket, chn::String, msg::String;
             defineCMD(tcp_sock, chn, String(command[:body]))
         elseif command[:cmd] == "commands"
             irc_send(tcp_sock, chn,
-                     Iterators.flatten(collect(keys(defined_cmds))))
+                     collect(keys(defined_cmds)))
         elseif command[:cmd] in keys(defined_cmds)
             index = command[:cmd]
             defined_cmds[index][1](tcp_sock, chn, defined_cmds[index][2])
@@ -155,8 +159,10 @@ const defined_cmds = Dict{String, Tuple{Function, String}}()
 # command functionality
 function defineCMD(tcp_sock, chn, expression::String)
     m = match(r"%(?<cmdName>\w+) %(?<func>\w+)*\((?<body>.*)\)", expression)
-    if m[:cmdName] in keys(cmd)
+    # println("[DBG: ]", m)
+    if !(m[:cmdName] in keys(cmd))
         defined_cmds[m[:cmdName]] = (cmd[m[:func]], String(m[:body]))
+        irc_send(tcp_sock, chn, "command $(m[:cmdName]) added!")
         open("commands_test.bin", "w") do f
             serialize(f, defined_cmds)
         end
