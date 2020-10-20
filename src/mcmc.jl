@@ -33,7 +33,7 @@ function lookup(prefix::Tuple{String, String}, table::Table)
     return ""
 end
 
-function generate(table::Table)
+function generate_markov_text(table::Table)
     buffer = ""
     n::Int64 = rand(20:100)
     items = shuffle(table.prefixVec), shuffle(table.suffixVec)
@@ -55,9 +55,9 @@ function generate(table::Table)
     return buffer
 end
 
-function generate_from_string(s::String)
+function generate_markov_from_string(s::String)
     temp = Table(s)
-    gen_text = generate(temp)
+    gen_text = generate_markov_text(temp)
     return gen_text
 end
 

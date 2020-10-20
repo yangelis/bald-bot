@@ -8,18 +8,23 @@ function irc_connect(tcp_sock::TCPSocket, config)
     return Status(tcp_sock.status)
 end
 
+
 function irc_send(tcp_sock::TCPSocket, buffer::String)
     buffer = buffer * '\r' * '\n'
     # @printf(stdout, "< %s", buffer)
     tcp_send(tcp_sock, buffer)
 end
 
-function irc_send(tcp_sock::TCPSocket, channel::String, buffer::Vector{String})
-    irc_send(tcp_sock, channel, mapreduce(x -> x * ',', *, buffer)[1:end-1])
+function irc_send_vec(tcp_sock::TCPSocket, chn::String, buffer::Vector{String})
+    irc_send(tcp_sock, chn, mapreduce(x -> x * ',', *, buffer)[1:end-1])
 end
 
-function irc_send(tcp_sock::TCPSocket, channel::String, buffer::String)
-    start_buffer = @sprintf("PRIVMSG #%s :", channel)
+# function irc_send(tcp_sock::TCPSocket, chn::String, buffer...)
+
+# end
+
+function irc_send(tcp_sock::TCPSocket, chn::String, buffer::String)
+    start_buffer = @sprintf("PRIVMSG #%s :", chn)
     buffer = start_buffer * buffer * '\r' * '\n'
     @printf(stdout, "< %s", buffer)
     tcp_send(tcp_sock, buffer)
@@ -98,7 +103,8 @@ function process_commands(tcp_sock::TCPSocket, chn::String, msg::String;
         elseif command[:cmd] == "commands"
             cmd_names = collect(keys(defined_cmds))
             if !isempty(cmd_names)
-                irc_send(tcp_sock, chn, cmd_names)
+                #TODO: find a way to print commands
+                irc_send(tcp_sock, chn, "Defined commands: <insert cmds names here>")
             else
                 irc_send(tcp_sock, chn, "No commands defined.")
             end
@@ -135,7 +141,7 @@ function markov()
                                     WHERE msg NOT LIKE '!%' """
                                ) |> columntable
     foreach(x-> buffer *= x * " " , cols[2])
-    gen_text = mcmc.generate_from_string(buffer)
+    gen_text = generate_markov_from_string(buffer)
     return gen_text
 end
 
