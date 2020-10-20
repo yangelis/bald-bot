@@ -1,10 +1,6 @@
-module repl
-include("irc.jl")
+# include("irc.jl")
 
-using .IRC.Utils
 using Sockets
-
-export local_repl
 
 function remove!(a, item)
     deleteat!(a, findall(x->x==item, a))
@@ -82,4 +78,3 @@ function repl_commands(tcp_sock::TCPSocket, str::String, chn::Vector{String})
     return chn
 end
 
-end # module

@@ -1,19 +1,6 @@
 # based on the irc part of DonHo's bot
 # https://github.com/DonHonerbrink/bruhbot
-module IRC
-
-module Utils
-include("tcp.jl")
-include("mcmc.jl")
-
-using .tcp
-using .mcmc
-
-using Sockets, Printf, SQLite, Tables, Serialization
-
-# exports
-export irc_connect, irc_send, read_oauth_file, irc_auth, irc_join,
-    irc_readlines
+using  Printf, SQLite, Tables, Serialization
 
 function irc_connect(tcp_sock::TCPSocket, config)
     tcp_create_sock(tcp_sock)
@@ -21,18 +8,23 @@ function irc_connect(tcp_sock::TCPSocket, config)
     return Status(tcp_sock.status)
 end
 
+
 function irc_send(tcp_sock::TCPSocket, buffer::String)
     buffer = buffer * '\r' * '\n'
     # @printf(stdout, "< %s", buffer)
     tcp_send(tcp_sock, buffer)
 end
 
-function irc_send(tcp_sock::TCPSocket, channel::String, buffer::Vector{String})
-    irc_send(tcp_sock, channel, mapreduce(x -> x * ',', *, buffer)[1:end-1])
+function irc_send_vec(tcp_sock::TCPSocket, chn::String, buffer::Vector{String})
+    irc_send(tcp_sock, chn, mapreduce(x -> x * ',', *, buffer)[1:end-1])
 end
 
-function irc_send(tcp_sock::TCPSocket, channel::String, buffer::String)
-    start_buffer = @sprintf("PRIVMSG #%s :", channel)
+# function irc_send(tcp_sock::TCPSocket, chn::String, buffer...)
+
+# end
+
+function irc_send(tcp_sock::TCPSocket, chn::String, buffer::String)
+    start_buffer = @sprintf("PRIVMSG #%s :", chn)
     buffer = start_buffer * buffer * '\r' * '\n'
     @printf(stdout, "< %s", buffer)
     tcp_send(tcp_sock, buffer)
@@ -63,7 +55,7 @@ function irc_join(tcp_sock::TCPSocket, channel::String)
     irc_send(tcp_sock, buffer)
 end
 
-function irc_readlines(tcp_sock::TCPSocket, config)
+function irc_readlines(tcp_sock::TCPSocket, config::Config)
     load_cmds()
     buffer = ""
     begin
@@ -79,7 +71,7 @@ function irc_readlines(tcp_sock::TCPSocket, config)
     return Status(tcp_sock.status), buffer
 end
 
-function irc_parse_msg(tcp_sock::TCPSocket, line::String, config)
+function irc_parse_msg(tcp_sock::TCPSocket, line::String, config::Config)
     if line == "PING :tmi.twitch.tv"
         irc_send(tcp_sock, "PONG :tmi.twitch.tv")
     end
@@ -109,8 +101,13 @@ function process_commands(tcp_sock::TCPSocket, chn::String, msg::String;
         elseif command[:cmd] == "addcmd"
             defineCMD(tcp_sock, chn, String(command[:body]))
         elseif command[:cmd] == "commands"
-            irc_send(tcp_sock, chn,
-                     collect(keys(defined_cmds)))
+            cmd_names = collect(keys(defined_cmds))
+            if !isempty(cmd_names)
+                #TODO: find a way to print commands
+                irc_send(tcp_sock, chn, "Defined commands: <insert cmds names here>")
+            else
+                irc_send(tcp_sock, chn, "No commands defined.")
+            end
         elseif command[:cmd] in keys(defined_cmds)
             index = command[:cmd]
             defined_cmds[index][1](tcp_sock, chn, defined_cmds[index][2])
@@ -144,7 +141,7 @@ function markov()
                                     WHERE msg NOT LIKE '!%' """
                                ) |> columntable
     foreach(x-> buffer *= x * " " , cols[2])
-    gen_text = mcmc.generate_from_string(buffer)
+    gen_text = generate_markov_from_string(buffer)
     return gen_text
 end
 
@@ -153,12 +150,11 @@ const cmd = Dict("say"=> irc_send, "test"=> println)
 const defined_cmds = Dict{String, Tuple{Function, String}}()
 
 
-#TODO: this would be better alone in a module
 # command functionality
-function defineCMD(tcp_sock, chn, expression::String)
+function defineCMD(tcp_sock::TCPSocket, chn::String, expression::String)
     m = match(r"%(?<cmdName>\w+) %(?<func>\w+)*\((?<body>.*)\)", expression)
     # println("[DBG: ]", m)
-    if !(m[:cmdName] in keys(cmd))
+    if m != nothing && !(m[:cmdName] in keys(cmd))
         defined_cmds[m[:cmdName]] = (cmd[m[:func]], String(m[:body]))
         irc_send(tcp_sock, chn, "command $(m[:cmdName]) added!")
         open("commands_test.bin", "w") do f
@@ -178,16 +174,8 @@ end
 
 function load_cmds()
     #TODO check if files exists
-    cmds_dump = "commands_test.bin"
+    cmds_dump::String = "commands_test.bin"
     if isfile(cmds_dump)
         merge!(defined_cmds, deserialize(cmds_dump))
     end
 end
-
-end # irc_Utils
-
-
-
-# end # Commands
-
-end # IRC

@@ -1,36 +1,36 @@
 module julia_bot
 
+using Sockets, Base.Threads
+
+include("bot_state.jl")
 include("parse_config.jl")
+include("tcp.jl")
+include("mcmc.jl")
 include("irc.jl")
 include("repl.jl")
 
-using .parse_config
-using .IRC
-using .repl
+export run_bot
 
-using Sockets, Base.Threads
-
-export bot_run
-
-function bot_run(config_filename::String)
-    config::Config = parseconfig(config_filename)
-
+function run_bot(config_filename::String)
     tcp_sock = TCPSocket(;delay=true)
+    bot = Bot(tcp_sock)
 
-    oauth::String = IRC.Utils.read_oauth_file(config.token_file)
-    status = IRC.Utils.irc_connect(tcp_sock, config)
+    config::Config = parseconfig!(config_filename, bot)
+    oauth::String = read_oauth_file(config.token_file)
+
+    status = irc_connect(bot.sock, config)
     println(stdout, "Status after irc_connect: ", status)
 
-    status = IRC.Utils.irc_auth(tcp_sock, config.nickname, oauth)
+    status = irc_auth(bot.sock, config.nickname, oauth)
     println(stdout, "Status after irc_auth: ", status)
 
     if !isempty(config.channel)
-        IRC.Utils.irc_join(tcp_sock, config.channel)
+        irc_join(bot.sock, config.channel)
     end # if
-    Threads.@spawn local_repl(tcp_sock)
+    Threads.@spawn local_repl(bot.sock)
 
     println(stdout, "Initialise:")
-    status, msg = IRC.Utils.irc_readlines(tcp_sock, config)
+    status, msg = irc_readlines(bot.sock, config)
 end
 
 end # module

@@ -1,13 +1,12 @@
 # based on the tcp part of DonHo's bot
 # https://github.com/DonHonerbrink/bruhbot
-module tcp
 
 using Base: StatusUninit, StatusInit, StatusConnecting, StatusOpen,
     StatusClosing, StatusClosed, StatusActive, StatusEOF, StatusPaused
 using Sockets
 
 # exports
-export Status, tcp_create_sock, tcp_close_sock, tcp_connect, tcp_send, tcp_recv
+# export Status, tcp_create_sock, tcp_close_sock, tcp_connect, tcp_send, tcp_recv
 
 @enum(Status, uninit=StatusUninit, init=StatusInit, connecting=StatusConnecting,
       opened=StatusOpen, act=StatusActive, closing=StatusClosing,
@@ -61,4 +60,3 @@ function read_msg(msg::Vector{UInt8})::Union{String, Vector{UInt8}}
     return result
 end
 
-end # module
