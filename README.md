@@ -6,10 +6,10 @@ channel, read messages and even send some
 
 ## Usage
 
-```julia
-julia --project
-julia> include("src/main.jl")
-julia> main()
+```sh
+$ julia --project
+julia> using julia_bot
+julia> run_bot("path/to/config.json")
 ```
 
 Now, open a separate terminal and connect to the repl as port 6969
