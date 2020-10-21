@@ -1,9 +1,18 @@
-# include("irc.jl")
-
-using Sockets
+using Sockets, UUIDs
 
 function remove!(a, item)
     deleteat!(a, findall(x->x==item, a))
+end
+
+function token_login(sock::TCPSocket)
+    csrf_token = repr(uuid4().value)
+    println(sock, "CSRF#> ", csrf_token)
+    print(sock, "CSRF#> ")
+    str = readline(sock)
+    if str == csrf_token
+        return true
+    end
+    return false
 end
 
 function local_repl(tcp_sock::TCPSocket)
@@ -15,6 +24,9 @@ function local_repl(tcp_sock::TCPSocket)
         @async begin
             try
                 write(sock,"Connected to bot repl\r\n")
+                if !(token_login(sock))
+                    close(sock)
+                end
                 while true
                     write(sock, "#> ")
                     str = readline(sock)
