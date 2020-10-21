@@ -1,0 +1,10 @@
+
+{
+    "twitch": {
+        "preffix": "!",
+        "owner": "<owner_nickname>",
+        "channel": "<channel_where_it_sits>",
+        "nickname": "<bot_name>",
+        "token": "<filename_with_oauth>"
+    }
+}
