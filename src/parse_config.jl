@@ -1,4 +1,4 @@
-include("../../jjson/jjson.jl")
+# include("../../jjson/jjson.jl")
 
 function parseconfig!(configfile::String, bot::Bot)
     parsed_config = jjson.parsejson(configfile)

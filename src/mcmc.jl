@@ -1,9 +1,6 @@
 # stolen from python implementation
 # https://technicallyagarwal.wordpress.com/2018/02/06/markov-chain-algorithm/
 
-using Printf, Random
-
-
 mutable struct Table
     prefixVec::Vector{Tuple{String, String}}
     suffixVec::Vector{String}

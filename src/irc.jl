@@ -1,6 +1,5 @@
 # based on the irc part of DonHo's bot
 # https://github.com/DonHonerbrink/bruhbot
-using  Printf, SQLite, Tables, Serialization
 
 function irc_connect(tcp_sock::TCPSocket, config)
     tcp_create_sock(tcp_sock)

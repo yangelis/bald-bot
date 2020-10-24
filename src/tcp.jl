@@ -3,10 +3,7 @@
 
 using Base: StatusUninit, StatusInit, StatusConnecting, StatusOpen,
     StatusClosing, StatusClosed, StatusActive, StatusEOF, StatusPaused
-using Sockets
 
-# exports
-# export Status, tcp_create_sock, tcp_close_sock, tcp_connect, tcp_send, tcp_recv
 
 @enum(Status, uninit=StatusUninit, init=StatusInit, connecting=StatusConnecting,
       opened=StatusOpen, act=StatusActive, closing=StatusClosing,

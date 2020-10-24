@@ -1,7 +1,15 @@
 module julia_bot
 
-using Sockets, Base.Threads
+using Base.Threads
+using Printf
+using Random
+using SQLite
+using Serialization
+using Sockets
+using Tables
+using UUIDs
 
+include("../../jjson/jjson.jl")
 include("bot_state.jl")
 include("parse_config.jl")
 include("tcp.jl")
