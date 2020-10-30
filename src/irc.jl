@@ -100,7 +100,7 @@ function process_commands(tcp_sock::TCPSocket, chn::String, msg::String;
         elseif command[:cmd] == "weather"
             city = String(command[:body])
             if !isempty(city)
-                text = read(`curl -4 https://wttr.in/$city\?format=4`, String)
+                text = read(`curl -4 -s https://wttr.in/$city\?format=4`, String)
                 irc_send(tcp_sock, chn, text)
             end
         elseif command[:cmd] == "addcmd"
