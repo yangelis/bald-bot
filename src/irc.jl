@@ -97,6 +97,12 @@ function process_commands(tcp_sock::TCPSocket, chn::String, msg::String;
             irc_send(tcp_sock, chn, "@$sender Pogey")
         elseif command[:cmd] == "markov"
             irc_send(tcp_sock, chn, markov())
+        elseif command[:cmd] == "weather"
+            city = String(command[:body])
+            if !isempty(city)
+                text = read(`curl -4 https://wttr.in/$city\?format=4`, String)
+                irc_send(tcp_sock, chn, text)
+            end
         elseif command[:cmd] == "addcmd"
             defineCMD(tcp_sock, chn, String(command[:body]))
         elseif command[:cmd] == "commands"
