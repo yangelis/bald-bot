@@ -108,7 +108,7 @@ function process_commands(tcp_sock::TCPSocket, chn::String, msg::String;
         elseif command[:cmd] == "commands"
             cmd_names = collect(keys(defined_cmds))
             if !isempty(cmd_names)
-                #TODO: find a way to print commands
+                #TODO(#5): find a way to print commands
                 irc_send(tcp_sock, chn, "Defined commands: <insert cmds names here>")
             else
                 irc_send(tcp_sock, chn, "No commands defined.")
