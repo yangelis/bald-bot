@@ -178,7 +178,7 @@ function generate()
 end
 
 function load_cmds()
-    #TODO check if files exists
+    #TODO: check if files exists
     cmds_dump::String = "commands_test.bin"
     if isfile(cmds_dump)
         merge!(defined_cmds, deserialize(cmds_dump))
