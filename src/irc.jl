@@ -139,7 +139,7 @@ function log_msg(chn::String, sender::String, msg::String)
 end
 
 function markov()
-    # TODO: handle empty database
+    # TODO(#8): handle empty database
     logfile::String = "twitch_log.db"
     buffer = ""
     db = SQLite.DB(logfile)
