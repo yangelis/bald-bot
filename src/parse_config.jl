@@ -1,7 +1,7 @@
 # include("../../jjson/jjson.jl")
 
 function parseconfig!(configfile::String, bot::Bot)
-    parsed_config = jjson.parsejson(configfile)
+    parsed_config = jjson.parsejson_from_file(configfile)
 
     config = Config()
     config.hostname = "irc.chat.twitch.tv"

@@ -9,7 +9,8 @@ using Sockets
 using Tables
 using UUIDs
 
-include("../../jjson/jjson.jl")
+include("../../jjson/src/jjson.jl")
+using .jjson
 include("bot_state.jl")
 include("parse_config.jl")
 include("tcp.jl")
